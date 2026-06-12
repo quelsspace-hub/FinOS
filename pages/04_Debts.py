@@ -8,8 +8,8 @@ from datetime import datetime
 
 # Page configuration
 st.set_page_config(
-    page_title="Debts - FinOS",
-    page_icon="💳",
+    page_title="FinOS",
+    page_icon="�",
     layout="wide"
 )
 
@@ -51,7 +51,7 @@ st.markdown("""
 
 # Get user from session state
 if 'user_id' not in st.session_state:
-    st.error("Please select a user from the main dashboard first.")
+    st.error("Por favor, selecione um usuario do dashboard principal primeiro.")
     st.stop()
 
 user_id = st.session_state['user_id']
@@ -60,28 +60,28 @@ user_id = st.session_state['user_id']
 engine = FinanceEngine(st)
 engine.set_user(user_id)
 
-st.title("💳 Debt Management")
+st.title("Gerenciamento de Dividas")
 st.markdown("---")
 
 # Create debt form
-with st.expander("➕ Add New Debt", expanded=False):
+with st.expander("Adicionar Nova Divida", expanded=False):
     with st.form("debt_form"):
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            total_amount = st.number_input("Total Amount (R$)", min_value=0.01, step=100.0, value=1000.0)
+            total_amount = st.number_input("Valor Total (R$)", min_value=0.01, step=100.0, value=1000.0)
         
         with col2:
-            interest_rate = st.number_input("Interest Rate (% per year)", min_value=0.0, step=0.1, value=0.0)
+            interest_rate = st.number_input("Taxa de Juros (% ao ano)", min_value=0.0, step=0.1, value=0.0)
         
         with col3:
-            priority_rank = st.selectbox("Priority", [1, 2, 3], format_func=lambda x: {1: "High", 2: "Medium", 3: "Low"}[x])
+            priority_rank = st.selectbox("Prioridade", [1, 2, 3], format_func=lambda x: {1: "Alta", 2: "Media", 3: "Baixa"}[x])
         
         col4 = st.columns(1)[0]
         with col4:
-            due_date = st.date_input("Due Date (optional)")
+            due_date = st.date_input("Data de Vencimento (opcional)")
         
-        submitted = st.form_submit_button("Add Debt")
+        submitted = st.form_submit_button("Adicionar Divida")
         
         if submitted and total_amount:
             due_date_str = due_date.isoformat() if due_date else None
@@ -92,11 +92,11 @@ with st.expander("➕ Add New Debt", expanded=False):
                 priority_rank=priority_rank,
                 due_date=due_date_str
             )
-            st.success("Debt added!")
+            st.success("Divida adicionada!")
             st.rerun()
 
 # Display debts
-st.subheader("Your Debts")
+st.subheader("Suas Dividas")
 
 debts = get_debts(user_id)
 
@@ -107,13 +107,13 @@ if debts:
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("Total Original Debt", f"R$ {total_debt['total_original']:.2f}")
+        st.metric("Divida Original Total", f"R$ {total_debt['total_original']:.2f}")
     
     with col2:
-        st.metric("Total Remaining", f"R$ {total_debt['total_remaining']:.2f}")
+        st.metric("Total Restante", f"R$ {total_debt['total_remaining']:.2f}")
     
     with col3:
-        st.metric("Total Paid", f"R$ {total_debt['total_paid']:.2f}")
+        st.metric("Total Pago", f"R$ {total_debt['total_paid']:.2f}")
     
     st.markdown("---")
     
@@ -121,13 +121,13 @@ if debts:
     snowball_plan = engine.calculate_debt_snowball()
     
     if snowball_plan:
-        st.subheader("🎯 Snowball Payoff Plan")
-        st.info("Debts ordered by smallest balance first (Snowball Method)")
+        st.subheader("Plano de Pagamento Bola de Neve")
+        st.info("Dividas ordenadas pelo menor saldo primeiro (Metodo Bola de Neve)")
         
         for plan in snowball_plan:
             st.markdown(
-                f"**#{plan['payoff_order']}**: R$ {plan['remaining_amount']:.2f} remaining "
-                f"({plan['percentage_paid']:.1f}% paid)"
+                f"**#{plan['payoff_order']}**: R$ {plan['remaining_amount']:.2f} restante "
+                f"({plan['percentage_paid']:.1f}% pago)"
             )
         
         st.markdown("---")
@@ -142,15 +142,15 @@ if debts:
             col_left, col_right = st.columns([3, 1])
             
             with col_left:
-                priority_label = {1: "High", 2: "Medium", 3: "Low"}[debt['priority_rank']]
+                priority_label = {1: "Alta", 2: "Media", 3: "Baixa"}[debt['priority_rank']]
                 
-                st.markdown(f"### Debt ID: {debt['id']}")
-                st.caption(f"Priority: {priority_label} | Interest Rate: {debt['interest_rate']}% per year")
+                st.markdown(f"### Divida ID: {debt['id']}")
+                st.caption(f"Prioridade: {priority_label} | Taxa de Juros: {debt['interest_rate']}% ao ano")
                 
                 if debt['due_date']:
                     due = datetime.fromisoformat(debt['due_date'])
                     days_remaining = (due - datetime.now()).days
-                    st.caption(f"Due: {debt['due_date'][:10]} ({days_remaining} days remaining)")
+                    st.caption(f"Vencimento: {debt['due_date'][:10]} ({days_remaining} dias restantes)")
                 
                 # Progress
                 total = debt['total_amount']
@@ -158,7 +158,7 @@ if debts:
                 paid = total - remaining
                 percentage = (paid / total) * 100 if total > 0 else 0
                 
-                st.caption(f"Total: R$ {total:.2f} | Paid: R$ {paid:.2f} | Remaining: R$ {remaining:.2f}")
+                st.caption(f"Total: R$ {total:.2f} | Pago: R$ {paid:.2f} | Restante: R$ {remaining:.2f}")
                 
                 # Progress bar
                 st.markdown(f"""
@@ -175,73 +175,76 @@ if debts:
                     
                     with col_btn1:
                         payment_amount = st.number_input(
-                            "Payment (R$)", 
+                            "Pagamento (R$)", 
                             min_value=0.01, 
                             max_value=debt['remaining_amount'], 
                             step=50.0, 
                             value=100.0,
                             key=f"pay_{debt['id']}"
                         )
-                        if st.button("Pay", key=f"pay_btn_{debt['id']}"):
+                        if st.button("Pagar", key=f"pay_btn_{debt['id']}"):
                             make_debt_payment(debt['id'], payment_amount)
-                            st.success("Payment recorded!")
+                            st.success("Pagamento registrado!")
                             st.rerun()
                     
                     with col_btn2:
-                        if st.button("🗑️ Delete", key=f"del_{debt['id']}"):
+                        if st.button("Excluir", key=f"del_{debt['id']}"):
                             delete_debt(debt['id'])
-                            st.success("Debt deleted!")
+                            st.success("Divida excluida!")
                             st.rerun()
                 else:
-                    st.success("✅ Paid off!")
-                    if st.button("🗑️ Delete", key=f"del_paid_{debt['id']}"):
+                    st.success("Pago!")
+                    if st.button("Excluir", key=f"del_paid_{debt['id']}"):
                         delete_debt(debt['id'])
-                        st.success("Debt deleted!")
+                        st.success("Divida excluida!")
                         st.rerun()
             
             st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.info("No debts recorded. Great job! 🎉")
+    st.info("Nenhuma divida registrada. Otimo trabalho!")
 
 # Payoff simulation
 st.markdown("---")
-st.subheader("📊 Payoff Simulation")
+st.subheader("Simulacao de Pagamento")
 
 if debts:
     monthly_payment = st.number_input(
-        "Monthly Payment for Debt Payoff (R$)", 
+        "Pagamento Mensal para Quitacao de Dividas (R$)", 
         min_value=50.0, 
         step=50.0, 
         value=500.0
     )
     
-    if st.button("Calculate Payoff Timeline"):
+    if st.button("Calcular Cronograma de Pagamento"):
         timeline = engine.calculate_debt_payoff_timeline(monthly_payment)
         
         if timeline['total_months'] > 0:
             col1, col2 = st.columns(2)
             
             with col1:
-                st.metric("Months to Payoff", timeline['total_months'])
+                st.metric("Meses para Quitacao", timeline['total_months'])
             
             with col2:
-                st.metric("Total Interest", f"R$ {timeline['total_interest_paid']:.2f}")
+                st.metric("Juros Total", f"R$ {timeline['total_interest_paid']:.2f}")
             
-            st.markdown("### Payoff Schedule")
+            st.markdown("### Cronograma de Pagamento")
             
             # Show first 12 months or all if less
             display_schedule = timeline['payoff_schedule'][:12]
             
             for entry in display_schedule:
                 st.markdown(
-                    f"**Month {entry['month']}**: Payment R$ {entry['payment']:.2f} "
-                    f"| Interest R$ {entry['interest']:.2f} | Principal R$ {entry['principal']:.2f} "
+                    f"**Mes {entry['month']}**: Pagamento R$ {entry['payment']:.2f} "
+                    f"| Juros R$ {entry['interest']:.2f} | Principal R$ {entry['principal']:.2f} "
                     f"| Remaining R$ {entry['remaining']:.2f}"
                 )
             
             if len(timeline['payoff_schedule']) > 12:
-                st.info(f"... and {len(timeline['payoff_schedule']) - 12} more months")
+                st.info(f"... e mais {len(timeline['payoff_schedule']) - 12} meses")
         else:
-            st.success("All debts are paid off! 🎉")
+            st.success("Todas as dividas estao pagas!")
 else:
-    st.info("Add debts to see payoff simulation.")
+    st.info("Adicione dividas para ver a simulacao de pagamento.")
+
+st.markdown("---")
+st.caption(f"Pagina de dividas atualizada em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

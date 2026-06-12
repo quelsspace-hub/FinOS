@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 # Page configuration
 st.set_page_config(
-    page_title="Reports - FinOS",
-    page_icon="📄",
+    page_title="FinOS",
+    page_icon="�",
     layout="wide"
 )
 
@@ -25,7 +25,7 @@ st.markdown("""
 
 # Get user from session state
 if 'user_id' not in st.session_state:
-    st.error("Please select a user from the main dashboard first.")
+    st.error("Por favor, selecione um usuario do dashboard principal primeiro.")
     st.stop()
 
 user_id = st.session_state['user_id']
@@ -34,24 +34,24 @@ user_id = st.session_state['user_id']
 report_gen = ReportGenerator(st)
 report_gen.set_user(user_id)
 
-st.title("📄 Financial Reports")
+st.title("Relatorios Financeiros")
 st.markdown("---")
 
 # Date range selector
-st.subheader("📅 Select Date Range")
+st.subheader("Selecionar Periodo")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    start_date = st.date_input("Start Date", value=datetime.now() - timedelta(days=30))
+    start_date = st.date_input("Data de Inicio", value=datetime.now() - timedelta(days=30))
 
 with col2:
-    end_date = st.date_input("End Date", value=datetime.now())
+    end_date = st.date_input("Data de Fim", value=datetime.now())
 
 with col3:
-    period_days = st.selectbox("Quick Select", [7, 30, 90, 180, 365], format_func=lambda x: f"{x} days")
+    period_days = st.selectbox("Selecao Rapida", [7, 30, 90, 180, 365], format_func=lambda x: f"{x} dias")
 
-if st.button("Apply Quick Select"):
+if st.button("Aplicar Selecao Rapida"):
     end_date = datetime.now()
     start_date = datetime.now() - timedelta(days=period_days)
     st.rerun()
@@ -59,21 +59,21 @@ if st.button("Apply Quick Select"):
 st.markdown("---")
 
 # Transaction Reports
-st.subheader("💰 Transaction Reports")
+st.subheader("Relatorios de Transacoes")
 
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown('<div class="report-card">', unsafe_allow_html=True)
-    st.markdown("### Export Transactions to CSV")
-    st.caption("Download all transactions in CSV format")
+    st.markdown("### Exportar Transacoes para CSV")
+    st.caption("Baixar todas as transacoes em formato CSV")
     
     start_str = start_date.isoformat()
     end_str = end_date.isoformat()
     
     csv_data = report_gen.export_transactions_to_csv(start_str, end_str)
     st.download_button(
-        label="Download CSV",
+        label="Baixar CSV",
         data=csv_data,
         file_name=f"transactions_{datetime.now().strftime('%Y%m%d')}.csv",
         mime="text/csv"
@@ -82,12 +82,12 @@ with col1:
 
 with col2:
     st.markdown('<div class="report-card">', unsafe_allow_html=True)
-    st.markdown("### Export Transactions to Excel")
-    st.caption("Download all transactions in Excel format")
+    st.markdown("### Exportar Transacoes para Excel")
+    st.caption("Baixar todas as transacoes em formato Excel")
     
     excel_data = report_gen.export_transactions_to_excel(start_str, end_str)
     st.download_button(
-        label="Download Excel",
+        label="Baixar Excel",
         data=excel_data,
         file_name=f"transactions_{datetime.now().strftime('%Y%m%d')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -97,31 +97,31 @@ with col2:
 st.markdown("---")
 
 # Summary Report
-st.subheader("📊 Summary Report")
+st.subheader("Relatorio Resumido")
 
-summary_days = st.slider("Summary Period (days)", 7, 365, 30)
+summary_days = st.slider("Periodo do Resumo (dias)", 7, 365, 30)
 
 summary = report_gen.generate_summary_report(summary_days)
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("Total Income", f"R$ {summary['balance']['total_income']:.2f}")
+    st.metric("Receita Total", f"R$ {summary['balance']['total_income']:.2f}")
 
 with col2:
-    st.metric("Total Expenses", f"R$ {summary['balance']['total_expense']:.2f}")
+    st.metric("Despesas Totais", f"R$ {summary['balance']['total_expense']:.2f}")
 
 with col3:
-    st.metric("Net Flow", f"R$ {summary['summary']['net_flow']:.2f}")
+    st.metric("Fluxo Liquido", f"R$ {summary['summary']['net_flow']:.2f}")
 
 with col4:
-    st.metric("Health Score", f"{summary['health_score']['score']}")
+    st.metric("Pontuacao de Saude", f"{summary['health_score']['score']}")
 
-st.markdown("### Download Summary Report")
+st.markdown("### Baixar Relatorio Resumido")
 
 summary_csv = report_gen.export_summary_to_csv(summary_days)
 st.download_button(
-    label="Download Summary CSV",
+    label="Baixar Resumo CSV",
     data=summary_csv,
     file_name=f"summary_{datetime.now().strftime('%Y%m%d')}.csv",
     mime="text/csv"
@@ -130,12 +130,12 @@ st.download_button(
 st.markdown("---")
 
 # Goals Report
-st.subheader("🎯 Goals Report")
+st.subheader("Relatorio de Metas")
 
 goals_csv = report_gen.export_goals_to_csv()
 
 st.download_button(
-    label="Download Goals CSV",
+    label="Baixar Metas CSV",
     data=goals_csv,
     file_name=f"goals_{datetime.now().strftime('%Y%m%d')}.csv",
     mime="text/csv"
@@ -144,12 +144,12 @@ st.download_button(
 st.markdown("---")
 
 # Debts Report
-st.subheader("💳 Debts Report")
+st.subheader("Relatorio de Dividas")
 
 debts_csv = report_gen.export_debts_to_csv()
 
 st.download_button(
-    label="Download Debts CSV",
+    label="Baixar Dividas CSV",
     data=debts_csv,
     file_name=f"debts_{datetime.now().strftime('%Y%m%d')}.csv",
     mime="text/csv"
@@ -158,12 +158,12 @@ st.download_button(
 st.markdown("---")
 
 # Investments Report
-st.subheader("📈 Investments Report")
+st.subheader("Relatorio de Investimentos")
 
 investments_csv = report_gen.export_investments_to_csv()
 
 st.download_button(
-    label="Download Investments CSV",
+    label="Baixar Investimentos CSV",
     data=investments_csv,
     file_name=f"investments_{datetime.now().strftime('%Y%m%d')}.csv",
     mime="text/csv"
@@ -172,12 +172,12 @@ st.download_button(
 st.markdown("---")
 
 # Budget Report
-st.subheader("📋 Budget Report")
+st.subheader("Relatorio de Orcamento")
 
 budget_csv = report_gen.export_budget_to_csv()
 
 st.download_button(
-    label="Download Budget CSV",
+    label="Baixar Orcamento CSV",
     data=budget_csv,
     file_name=f"budget_{datetime.now().strftime('%Y%m%d')}.csv",
     mime="text/csv"
@@ -186,19 +186,19 @@ st.download_button(
 st.markdown("---")
 
 # Comprehensive Report
-st.subheader("📑 Comprehensive Report")
+st.subheader("Relatorio Completo")
 
-st.info("This report includes all financial data in JSON format for advanced analysis.")
+st.info("Este relatorio inclui todos os dados financeiros em formato JSON para analise avancada.")
 
-if st.button("Generate Comprehensive Report"):
-    with st.spinner("Generating comprehensive report..."):
+if st.button("Gerar Relatorio Completo"):
+    with st.spinner("Gerando relatorio completo..."):
         comprehensive = report_gen.generate_comprehensive_report(summary_days)
         
         import json
         json_data = json.dumps(comprehensive, indent=2, default=str)
         
         st.download_button(
-            label="Download Comprehensive JSON",
+            label="Baixar JSON Completo",
             data=json_data,
             file_name=f"comprehensive_{datetime.now().strftime('%Y%m%d')}.json",
             mime="application/json"
@@ -207,30 +207,33 @@ if st.button("Generate Comprehensive Report"):
 st.markdown("---")
 
 # Report Preview
-st.subheader("👁️ Report Preview")
+st.subheader("Previsualizacao do Relatorio")
 
 preview_option = st.selectbox(
-    "Select Report to Preview",
-    ["Summary", "Transactions", "Goals", "Debts", "Investments", "Budget"]
+    "Selecionar Relatorio para Previsualizar",
+    ["Resumo", "Transacoes", "Metas", "Dividas", "Investimentos", "Orcamento"]
 )
 
-if preview_option == "Summary":
+if preview_option == "Resumo":
     st.json(summary)
-elif preview_option == "Transactions":
+elif preview_option == "Transacoes":
     transactions = report_gen.db.get_transactions(user_id, limit=100)
     st.dataframe(transactions)
-elif preview_option == "Goals":
+elif preview_option == "Metas":
     goals = report_gen.db.get_goals(user_id)
     st.dataframe(goals)
-elif preview_option == "Debts":
+elif preview_option == "Dividas":
     debts = report_gen.db.get_debts(user_id)
     st.dataframe(debts)
-elif preview_option == "Investments":
+elif preview_option == "Investimentos":
     investments = report_gen.db.get_investments(user_id)
     st.dataframe(investments)
-elif preview_option == "Budget":
+elif preview_option == "Orcamento":
     budgets = report_gen.db.get_budgets(user_id)
     st.dataframe(budgets)
 
 st.markdown("---")
-st.caption(f"Reports generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+st.caption(f"Relatorios gerados em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+st.markdown("---")
+st.caption(f"Pagina de relatorios atualizada em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

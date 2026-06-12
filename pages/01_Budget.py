@@ -6,8 +6,8 @@ from core.engine import FinanceEngine
 
 # Page configuration
 st.set_page_config(
-    page_title="Budget - FinOS",
-    page_icon="📊",
+    page_title="FinOS",
+    page_icon="�",
     layout="wide"
 )
 
@@ -51,7 +51,7 @@ st.markdown("""
 
 # Get user from session state
 if 'user_id' not in st.session_state:
-    st.error("Please select a user from the main dashboard first.")
+    st.error("Por favor, selecione um usuario do dashboard principal primeiro.")
     st.stop()
 
 user_id = st.session_state['user_id']
@@ -60,7 +60,7 @@ user_id = st.session_state['user_id']
 engine = FinanceEngine(st)
 engine.set_user(user_id)
 
-st.title("📊 Budget Management")
+st.title("Orcamento")
 st.markdown("---")
 
 # Get current balance for budget distribution
@@ -68,38 +68,38 @@ balance_data = get_balance(user_id)
 monthly_income = balance_data['total_income']
 
 # Create budget form
-with st.expander("➕ Create/Update Budget Category", expanded=False):
+with st.expander("Criar/Atualizar Categoria de Orcamento", expanded=False):
     with st.form("budget_form"):
         col1, col2, col3 = st.columns(3)
         
         with col1:
             category = st.selectbox(
-                "Category",
-                ["Food", "Transport", "Housing", "Entertainment", 
-                 "Health", "Education", "Shopping", "Other"]
+                "Categoria",
+                ["Alimentacao", "Transporte", "Moradia", "Entretenimento", 
+                 "Saude", "Educacao", "Compras", "Outros"]
             )
         
         with col2:
-            budget_type = st.radio("Budget Type", ["Percentage", "Fixed Value"])
+            budget_type = st.radio("Tipo de Orcamento", ["Porcentagem", "Valor Fixo"])
         
         with col3:
-            if budget_type == "Percentage":
-                value = st.number_input("Percentage (%)", min_value=0, max_value=100, value=10)
+            if budget_type == "Porcentagem":
+                value = st.number_input("Porcentagem (%)", min_value=0, max_value=100, value=10)
             else:
-                value = st.number_input("Fixed Value (R$)", min_value=0.0, step=10.0, value=100.0)
+                value = st.number_input("Valor Fixo (R$)", min_value=0.0, step=10.0, value=100.0)
         
-        submitted = st.form_submit_button("Save Budget")
+        submitted = st.form_submit_button("Salvar Orcamento")
         
         if submitted:
-            if budget_type == "Percentage":
+            if budget_type == "Porcentagem":
                 create_budget(user_id, category, percentage=value)
             else:
                 create_budget(user_id, category, limit_value=value)
-            st.success(f"Budget for {category} saved!")
+            st.success(f"Orcamento para {category} salvo!")
             st.rerun()
 
 # Display current budgets
-st.subheader("Current Budget Distribution")
+st.subheader("Distribuicao Atual de Orcamento")
 
 budgets = get_budgets(user_id)
 category_spending = get_transactions_by_category(user_id)
@@ -123,19 +123,19 @@ if budgets:
                 
                 if budget['percentage']:
                     limit = monthly_income * (budget['percentage'] / 100)
-                    st.caption(f"{budget['percentage']}% of income = R$ {limit:.2f}")
+                    st.caption(f"{budget['percentage']}% da renda = R$ {limit:.2f}")
                 elif budget['limit_value']:
                     limit = budget['limit_value']
-                    st.caption(f"Fixed limit: R$ {limit:.2f}")
+                    st.caption(f"Limite fixo: R$ {limit:.2f}")
                 else:
                     limit = 0
-                    st.caption("No limit set")
+                    st.caption("Nenhum limite definido")
             
             with col_right:
-                st.metric("Spent", f"R$ {spent:.2f}")
+                st.metric("Gasto", f"R$ {spent:.2f}")
                 if limit > 0:
                     remaining = limit - spent
-                    st.metric("Remaining", f"R$ {remaining:.2f}")
+                    st.metric("Restante", f"R$ {remaining:.2f}")
             
             # Progress bar
             if limit > 0:
@@ -152,50 +152,50 @@ if budgets:
                     <div class="progress-bar">
                         <div class="{progress_class}" style="width: {percentage_used}%"></div>
                     </div>
-                    <small>{percentage_used:.1f}% used</small>
+                    <small>{percentage_used:.1f}% usado</small>
                 """, unsafe_allow_html=True)
             else:
-                st.info("No limit set for this category")
+                st.info("Nenhum limite definido para esta categoria")
             
             st.markdown('</div>', unsafe_allow_html=True)
     
     # Display unallocated amount
     if 'Unallocated' in budget_dist:
-        st.info(f"💡 Unallocated: R$ {budget_dist['Unallocated']:.2f} ({(budget_dist['Unallocated']/monthly_income)*100:.1f}% of income)")
+        st.info(f"Nao alocado: R$ {budget_dist['Unallocated']:.2f} ({(budget_dist['Unallocated']/monthly_income)*100:.1f}% da renda)")
     
     # Budget alerts
     alerts = engine.check_budget_alerts()
     if alerts:
         st.markdown("---")
-        st.subheader("⚠️ Budget Alerts")
+        st.subheader("Alertas de Orcamento")
         for alert in alerts:
             st.error(
-                f"**{alert['category']}**: Over budget by R$ {alert['over_budget']:.2f} "
-                f"({alert['percentage_used']:.1f}% used)"
+                f"**{alert['category']}**: Acima do orcamento em R$ {alert['over_budget']:.2f} "
+                f"({alert['percentage_used']:.1f}% usado)"
             )
 else:
-    st.info("No budgets configured yet. Create your first budget above!")
+    st.info("Nenhum orcamento configurado ainda. Crie seu primeiro orcamento acima!")
 
 # Budget summary
 st.markdown("---")
-st.subheader("📈 Budget Summary")
+st.subheader("Resumo de Orcamento")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     total_budgeted = sum([b['limit_value'] for b in budgets if b['limit_value']])
-    st.metric("Total Budgeted (Fixed)", f"R$ {total_budgeted:.2f}")
+    st.metric("Total Orcado (Fixo)", f"R$ {total_budgeted:.2f}")
 
 with col2:
     total_spent = sum(category_spending.values())
-    st.metric("Total Spent", f"R$ {total_spent:.2f}")
+    st.metric("Total Gasto", f"R$ {total_spent:.2f}")
 
 with col3:
     health_score = engine.get_financial_health_score()
     score_color = "#9ABF17" if health_score['score'] >= 60 else "#D4DB7A"
     st.markdown(f"""
         <div style="background-color: #AED9C5; padding: 20px; border-radius: 12px; text-align: center;">
-            <h3 style="color: #282900; margin: 0;">Financial Health</h3>
+            <h3 style="color: #282900; margin: 0;">Saude Financeira</h3>
             <h1 style="color: {score_color}; margin: 10px 0;">{health_score['score']}</h1>
             <p style="color: #282900; margin: 0;">{health_score['status']}</p>
         </div>

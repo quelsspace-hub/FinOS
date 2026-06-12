@@ -9,56 +9,56 @@ from datetime import datetime, timedelta
 
 # Page configuration
 st.set_page_config(
-    page_title="Payment Calendar - FinOS",
-    page_icon="📅",
+    page_title="FinOS",
+    page_icon="�",
     layout="wide"
 )
 
 # Get user from session state
 if 'user_id' not in st.session_state:
-    st.error("Please select a user from the main dashboard first.")
+    st.error("Por favor, selecione um usuario do dashboard principal primeiro.")
     st.stop()
 
 user_id = st.session_state['user_id']
 
-st.title("📅 Payment Calendar")
+st.title("Calendario de Pagamentos")
 st.markdown("---")
 
 # Tabs for different views
-tab1, tab2, tab3 = st.tabs(["Payment Calendar", "Recurring Transactions", "Generate Transactions"])
+tab1, tab2, tab3 = st.tabs(["Calendario de Pagamentos", "Transacoes Recorrentes", "Gerar Transacoes"])
 
 # Tab 1: Payment Calendar
 with tab1:
-    st.subheader("📋 Payment Schedule")
+    st.subheader("Cronograma de Pagamentos")
     
     # Date range selector
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input("Start Date", value=datetime.now().replace(day=1))
+        start_date = st.date_input("Data de Inicio", value=datetime.now().replace(day=1))
     with col2:
-        end_date = st.date_input("End Date", value=datetime.now() + timedelta(days=30))
+        end_date = st.date_input("Data de Fim", value=datetime.now() + timedelta(days=30))
     
     # Add new payment
-    with st.expander("➕ Add New Payment", expanded=False):
+    with st.expander("Adicionar Novo Pagamento", expanded=False):
         with st.form("payment_form"):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                name = st.text_input("Payment Name")
-                amount = st.number_input("Amount (R$)", min_value=0.01, step=0.01, value=100.0)
+                name = st.text_input("Nome do Pagamento")
+                amount = st.number_input("Valor (R$)", min_value=0.01, step=0.01, value=100.0)
             
             with col2:
                 category = st.selectbox(
-                    "Category",
-                    ["Rent", "Utilities", "Internet", "Phone", "Insurance", "Subscription", "Loan", "Credit Card", "Other"]
+                    "Categoria",
+                    ["Aluguel", "Utilidades", "Internet", "Telefone", "Seguro", "Assinatura", "Emprestimo", "Cartao de Credito", "Outros"]
                 )
-                due_date = st.date_input("Due Date")
+                due_date = st.date_input("Data de Vencimento")
             
             with col3:
-                is_recurring = st.checkbox("Recurring Payment")
-                notes = st.text_area("Notes (optional)")
+                is_recurring = st.checkbox("Pagamento Recorrente")
+                notes = st.text_area("Notas (opcional)")
             
-            submitted = st.form_submit_button("Add Payment")
+            submitted = st.form_submit_button("Adicionar Pagamento")
             
             if submitted and name and amount:
                 create_payment(
@@ -70,14 +70,14 @@ with tab1:
                     is_recurring=is_recurring,
                     notes=notes
                 )
-                st.success("Payment added!")
+                st.success("Pagamento adicionado!")
                 st.rerun()
     
     # Display payments
     payments = get_payments(user_id, start_date.isoformat(), end_date.isoformat())
     
     if payments:
-        st.markdown(f"### Payments ({len(payments)})")
+        st.markdown(f"### Pagamentos ({len(payments)})")
         
         for payment in payments:
             with st.container():
@@ -88,66 +88,66 @@ with tab1:
                 col_left, col_right = st.columns([4, 1])
                 
                 with col_left:
-                    status_color = "🔴" if is_overdue and not payment['is_paid'] else "🟢" if payment['is_paid'] else "🟡"
-                    st.markdown(f"### {status_color} {payment['name']}")
-                    st.caption(f"Due: {payment['due_date'][:10]} ({days_remaining} days remaining)")
-                    st.markdown(f"**Amount**: R$ {payment['amount']:.2f} | **Category**: {payment['category'] or 'N/A'}")
+                    status_text = "ATRASADO" if is_overdue and not payment['is_paid'] else "PAGO" if payment['is_paid'] else "PENDENTE"
+                    st.markdown(f"### {status_text} {payment['name']}")
+                    st.caption(f"Vencimento: {payment['due_date'][:10]} ({days_remaining} dias restantes)")
+                    st.markdown(f"**Valor**: R$ {payment['amount']:.2f} | **Categoria**: {payment['category'] or 'N/A'}")
                     
                     if payment['is_paid']:
-                        st.success(f"✅ Paid on {payment['paid_date'][:10] if payment['paid_date'] else 'N/A'}")
+                        st.success(f"Pago em {payment['paid_date'][:10] if payment['paid_date'] else 'N/A'}")
                     elif is_overdue:
-                        st.error(f"⚠️ OVERDUE by {abs(days_remaining)} days")
+                        st.error(f"ATRASADO por {abs(days_remaining)} dias")
                     else:
-                        st.info(f"⏳ Due in {days_remaining} days")
+                        st.info(f"Vence em {days_remaining} dias")
                     
                     if payment['notes']:
-                        st.caption(f"Notes: {payment['notes']}")
+                        st.caption(f"Notas: {payment['notes']}")
                 
                 with col_right:
                     if not payment['is_paid']:
-                        if st.button("Mark Paid", key=f"pay_{payment['id']}"):
+                        if st.button("Marcar Pago", key=f"pay_{payment['id']}"):
                             mark_payment_paid(payment['id'])
-                            st.success("Payment marked as paid!")
+                            st.success("Pagamento marcado como pago!")
                             st.rerun()
                     
-                    if st.button("🗑️ Delete", key=f"del_{payment['id']}"):
+                    if st.button("Excluir", key=f"del_{payment['id']}"):
                         delete_payment(payment['id'])
-                        st.success("Payment deleted!")
+                        st.success("Pagamento excluido!")
                         st.rerun()
                 
                 st.markdown("---")
     else:
-        st.info("No payments scheduled for this period.")
+        st.info("Nenhum pagamento agendado para este periodo.")
 
 # Tab 2: Recurring Transactions
 with tab2:
-    st.subheader("🔄 Recurring Transactions")
+    st.subheader("Transacoes Recorrentes")
     
     # Add new recurring transaction
-    with st.expander("➕ Add Recurring Transaction", expanded=False):
+    with st.expander("Adicionar Transacao Recorrente", expanded=False):
         with st.form("recurring_form"):
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                name = st.text_input("Transaction Name")
-                amount = st.number_input("Amount (R$)", min_value=0.01, step=0.01, value=100.0)
+                name = st.text_input("Nome da Transacao")
+                amount = st.number_input("Valor (R$)", min_value=0.01, step=0.01, value=100.0)
             
             with col2:
-                trans_type = st.selectbox("Type", ["income", "expense"])
+                trans_type = st.selectbox("Tipo", ["receita", "despesa"])
                 category = st.selectbox(
-                    "Category",
-                    ["Salary", "Rent", "Utilities", "Internet", "Phone", "Insurance", "Subscription", "Loan", "Credit Card", "Other"]
+                    "Categoria",
+                    ["Salario", "Aluguel", "Utilidades", "Internet", "Telefone", "Seguro", "Assinatura", "Emprestimo", "Cartao de Credito", "Outros"]
                 )
             
             with col3:
                 frequency = st.selectbox(
-                    "Frequency",
-                    ["daily", "weekly", "biweekly", "monthly", "quarterly", "yearly"]
+                    "Frequencia",
+                    ["diario", "semanal", "quinzenal", "mensal", "trimestral", "anual"]
                 )
-                start_date = st.date_input("Start Date")
-                end_date = st.date_input("End Date (optional)", value=None)
+                start_date = st.date_input("Data de Inicio")
+                end_date = st.date_input("Data de Fim (opcional)", value=None)
             
-            submitted = st.form_submit_button("Add Recurring Transaction")
+            submitted = st.form_submit_button("Adicionar Transacao Recorrente")
             
             if submitted and name and amount:
                 end_date_str = end_date.isoformat() if end_date else None
@@ -161,53 +161,56 @@ with tab2:
                     start_date=start_date.isoformat(),
                     end_date=end_date_str
                 )
-                st.success("Recurring transaction added!")
+                st.success("Transacao recorrente adicionada!")
                 st.rerun()
     
     # Display recurring transactions
     recurring = get_recurring_transactions(user_id)
     
     if recurring:
-        st.markdown(f"### Active Recurring Transactions ({len(recurring)})")
+        st.markdown(f"### Transacoes Recorrentes Ativas ({len(recurring)})")
         
         for rec in recurring:
             with st.container():
                 st.markdown(f"### {rec['name']}")
-                st.caption(f"Frequency: {rec['frequency']} | Type: {rec['type']} | Category: {rec['category']}")
-                st.markdown(f"**Amount**: R$ {rec['amount']:.2f}")
-                st.caption(f"Start: {rec['start_date'][:10]} | End: {rec['end_date'][:10] if rec['end_date'] else 'Ongoing'}")
+                st.caption(f"Frequencia: {rec['frequency']} | Tipo: {rec['type']} | Categoria: {rec['category']}")
+                st.markdown(f"**Valor**: R$ {rec['amount']:.2f}")
+                st.caption(f"Inicio: {rec['start_date'][:10]} | Fim: {rec['end_date'][:10] if rec['end_date'] else 'Continuo'}")
                 
                 col_btn1, col_btn2 = st.columns(2)
                 
                 with col_btn1:
-                    if st.button("🗑️ Delete", key=f"del_rec_{rec['id']}"):
+                    if st.button("Excluir", key=f"del_rec_{rec['id']}"):
                         delete_recurring_transaction(rec['id'])
-                        st.success("Recurring transaction deleted!")
+                        st.success("Transacao recorrente excluida!")
                         st.rerun()
                 
                 with col_btn2:
-                    if st.button("⏸️ Deactivate", key=f"deact_{rec['id']}"):
+                    if st.button("Desativar", key=f"deact_{rec['id']}"):
                         deactivate_recurring_transaction(rec['id'])
-                        st.success("Recurring transaction deactivated!")
+                        st.success("Transacao recorrente desativada!")
                         st.rerun()
                 
                 st.markdown("---")
     else:
-        st.info("No recurring transactions set up.")
+        st.info("Nenhuma transacao recorrente configurada.")
 
 # Tab 3: Generate Transactions
 with tab3:
-    st.subheader("⚡ Generate Transactions from Recurring Patterns")
+    st.subheader("Gerar Transacoes a partir de Padroes Recorrentes")
     
-    st.info("This will generate actual transactions from your recurring transaction patterns up to a specified date.")
+    st.info("Isso ira gerar transacoes reais a partir dos seus padroes de transacoes recorrentes ate uma data especificada.")
     
-    target_date = st.date_input("Generate transactions up to", value=datetime.now() + timedelta(days=30))
+    target_date = st.date_input("Gerar transacoes ate", value=datetime.now() + timedelta(days=30))
     
-    if st.button("Generate Transactions"):
-        with st.spinner("Generating transactions..."):
+    if st.button("Gerar Transacoes"):
+        with st.spinner("Gerando transacoes..."):
             count = generate_recurring_transactions(user_id, target_date.isoformat())
-            st.success(f"Generated {count} transactions!")
+            st.success(f"Geradas {count} transacoes!")
             st.rerun()
 
 st.markdown("---")
-st.caption(f"Calendar updated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+st.caption(f"Calendario atualizado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+st.markdown("---")
+st.caption(f"Pagina de calendario atualizada em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

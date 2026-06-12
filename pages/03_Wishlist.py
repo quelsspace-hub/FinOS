@@ -7,8 +7,8 @@ from core.engine import FinanceEngine
 
 # Page configuration
 st.set_page_config(
-    page_title="Wishlist - FinOS",
-    page_icon="🎁",
+    page_title="FinOS",
+    page_icon="💰",
     layout="wide"
 )
 
@@ -44,7 +44,7 @@ st.markdown("""
 
 # Get user from session state
 if 'user_id' not in st.session_state:
-    st.error("Please select a user from the main dashboard first.")
+    st.error("Por favor, selecione um usuario do dashboard principal primeiro.")
     st.stop()
 
 user_id = st.session_state['user_id']
@@ -53,24 +53,24 @@ user_id = st.session_state['user_id']
 engine = FinanceEngine(st)
 engine.set_user(user_id)
 
-st.title("🎁 Wishlist")
+st.title("Lista de Desejos")
 st.markdown("---")
 
 # Create wishlist item form
-with st.expander("➕ Add to Wishlist", expanded=False):
+with st.expander("Adicionar a Lista de Desejos", expanded=False):
     with st.form("wishlist_form"):
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            name = st.text_input("Item Name")
+            name = st.text_input("Nome do Item")
         
         with col2:
-            price = st.number_input("Price (R$)", min_value=0.01, step=10.0, value=100.0)
+            price = st.number_input("Preco (R$)", min_value=0.01, step=10.0, value=100.0)
         
         with col3:
-            priority = st.selectbox("Priority", [1, 2, 3], format_func=lambda x: {1: "High", 2: "Medium", 3: "Low"}[x])
+            priority = st.selectbox("Prioridade", [1, 2, 3], format_func=lambda x: {1: "Alta", 2: "Media", 3: "Baixa"}[x])
         
-        submitted = st.form_submit_button("Add to Wishlist")
+        submitted = st.form_submit_button("Adicionar a Lista")
         
         if submitted and name and price:
             create_wishlist_item(
@@ -79,11 +79,11 @@ with st.expander("➕ Add to Wishlist", expanded=False):
                 price=price,
                 priority=priority
             )
-            st.success(f"'{name}' added to wishlist!")
+            st.success(f"'{name}' adicionado a lista de desejos!")
             st.rerun()
 
 # Display wishlist
-st.subheader("Your Wishlist")
+st.subheader("Sua Lista de Desejos")
 
 wishlist = get_wishlist(user_id)
 
@@ -98,13 +98,13 @@ if wishlist:
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("Total Items", len(wishlist))
+        st.metric("Total de Itens", len(wishlist))
     
     with col2:
-        st.metric("Achieved", achieved_count)
+        st.metric("Alcançados", achieved_count)
     
     with col3:
-        st.metric("Total Value", f"R$ {total_price:.2f}")
+        st.metric("Valor Total", f"R$ {total_price:.2f}")
     
     st.markdown("---")
     
@@ -114,10 +114,10 @@ if wishlist:
         unaffordable_items = [item for item in affordability if not item['affordable']]
         
         if affordable_items:
-            st.success(f"✅ {len(affordable_items)} items are affordable with current cash flow")
+            st.success(f"{len(affordable_items)} itens sao acessiveis com o fluxo de caixa atual")
         
         if unaffordable_items:
-            st.warning(f"⚠️ {len(unaffordable_items)} items need better cash flow to achieve")
+            st.warning(f"{len(unaffordable_items)} itens precisam de melhor fluxo de caixa para alcançar")
     
     st.markdown("---")
     
@@ -132,14 +132,13 @@ if wishlist:
             col_left, col_right = st.columns([3, 1])
             
             with col_left:
-                status_emoji = "✅" if item['status'] == 'achieved' else "🎁"
-                priority_label = {1: "High", 2: "Medium", 3: "Low"}[item['priority']]
+                priority_label = {1: "Alta", 2: "Media", 3: "Baixa"}[item['priority']]
                 
-                st.markdown(f"### {status_emoji} {item['name']}")
-                st.caption(f"Priority: {priority_label} | Price: R$ {item['price']:.2f}")
+                st.markdown(f"### {item['name']}")
+                st.caption(f"Prioridade: {priority_label} | Preco: R$ {item['price']:.2f}")
                 
                 if item['status'] == 'achieved':
-                    st.success("Achieved! 🎉")
+                    st.success("Alcançado!")
                 else:
                     # Find affordability info
                     item_affordability = next((a for a in affordability if a['id'] == item['id']), None)
@@ -148,50 +147,53 @@ if wishlist:
                         if item_affordability['affordable']:
                             months = item_affordability['months_to_achieve']
                             est_date = item_affordability['estimated_date']
-                            st.info(f"📅 Achievable in {months} month(s) (est. {est_date})")
+                            st.info(f"Atingivel em {months} mes(es) (est. {est_date})")
                         else:
-                            st.warning("⚠️ Not affordable with current cash flow")
+                            st.warning("Nao acessivel com o fluxo de caixa atual")
             
             with col_right:
                 if item['status'] != 'achieved':
                     col_btn1, col_btn2 = st.columns(2)
                     
                     with col_btn1:
-                        if st.button("✅ Achieve", key=f"achieve_{item['id']}"):
+                        if st.button("Alcançar", key=f"achieve_{item['id']}"):
                             mark_wishlist_achieved(item['id'])
-                            st.success("Marked as achieved!")
+                            st.success("Marcado como alcançado!")
                             st.rerun()
                     
                     with col_btn2:
-                        if st.button("🗑️ Delete", key=f"del_{item['id']}"):
+                        if st.button("Excluir", key=f"del_{item['id']}"):
                             delete_wishlist_item(item['id'])
-                            st.success("Item deleted!")
+                            st.success("Item excluido!")
                             st.rerun()
                 else:
-                    if st.button("🗑️ Delete", key=f"del_achieved_{item['id']}"):
+                    if st.button("Excluir", key=f"del_achieved_{item['id']}"):
                         delete_wishlist_item(item['id'])
-                        st.success("Item deleted!")
+                        st.success("Item excluido!")
                         st.rerun()
             
             st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.info("Your wishlist is empty. Add your first item above!")
+    st.info("Sua lista de desejos esta vazia. Adicione seu primeiro item acima!")
 
 # Affordability breakdown
 if wishlist and affordability:
     st.markdown("---")
-    st.subheader("📊 Affordability Breakdown")
+    st.subheader("Analise de Acessibilidade")
     
     if affordability:
         for item in affordability:
             if item['affordable']:
                 st.markdown(
-                    f"**{item['name']}**: {item['months_to_achieve']} months "
-                    f"(R$ {item['price']:.2f} / R$ {item['monthly_net']:.2f} per month) "
+                    f"**{item['name']}**: {item['months_to_achieve']} meses "
+                    f"(R$ {item['price']:.2f} / R$ {item['monthly_net']:.2f} por mes) "
                     f"→ Est. {item['estimated_date']}"
                 )
             else:
                 st.markdown(
-                    f"**{item['name']}**: ❌ Not affordable "
-                    f"(R$ {item['price']:.2f} needed, but monthly net is R$ {item['monthly_net']:.2f})"
+                    f"**{item['name']}**: Nao acessivel "
+                    f"(R$ {item['price']:.2f} necessario, mas o mensal liquido e R$ {item['monthly_net']:.2f})"
                 )
+
+st.markdown("---")
+st.caption(f"Pagina de lista de desejos atualizada em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

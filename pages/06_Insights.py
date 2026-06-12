@@ -5,8 +5,8 @@ from datetime import datetime
 
 # Page configuration
 st.set_page_config(
-    page_title="AI Insights - FinOS",
-    page_icon="🤖",
+    page_title="FinOS",
+    page_icon="💰",
     layout="wide"
 )
 
@@ -46,31 +46,31 @@ user_id = st.session_state['user_id']
 ai_layer = AILayer(st)
 ai_layer.set_user(user_id)
 
-st.title("🤖 AI Financial Insights")
+st.title("Insights Financeiros IA")
 st.markdown("---")
 
 # Generate comprehensive insights
-with st.spinner("Analyzing your financial data..."):
+with st.spinner("Analisando seus dados financeiros..."):
     insights = ai_layer.generate_comprehensive_insights()
 
 # Summary section
-st.subheader("📊 Financial Health Summary")
+st.subheader("Resumo de Saude Financeira")
 
 summary = insights['summary']
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("Total Recommendations", summary['total_recommendations'])
+    st.metric("Total de Recomendacoes", summary['total_recommendations'])
 
 with col2:
-    st.metric("High Priority", summary['high_priority_count'])
+    st.metric("Alta Prioridade", summary['high_priority_count'])
 
 with col3:
     status_color = "#9ABF17" if summary['health_status'] == 'Excellent' else "#D4DB7A" if summary['health_status'] == 'Needs Attention' else "#FF6B6B"
     st.markdown(f"""
         <div style="text-align: center; padding: 10px; background-color: #AED9C5; border-radius: 8px;">
-            <small style="color: #282900;">Health Status</small><br>
+            <small style="color: #282900;">Status de Saude</small><br>
             <span style="color: {status_color}; font-size: 24px; font-weight: 600;">{summary['health_status']}</span>
         </div>
     """, unsafe_allow_html=True)
@@ -78,33 +78,33 @@ with col3:
 st.markdown("---")
 
 # Spending Patterns
-st.subheader("💰 Spending Patterns Analysis")
+st.subheader("Analise de Padroes de Gastos")
 
 patterns = insights['spending_patterns']
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### Top Spending Categories (Last 90 Days)")
+    st.markdown("### Categorias de Maiores Gastos (Ultimos 90 Dias)")
     if patterns['top_categories']:
         for category, amount in patterns['top_categories']:
             monthly_avg = patterns['monthly_averages'].get(category, 0)
             st.markdown(f"**{category}**: R$ {amount:.2f} (R$ {monthly_avg:.2f}/month)")
     else:
-        st.info("No spending data available")
+        st.info("Nenhum dado de gasto disponivel")
 
 with col2:
-    st.markdown("### Spending Frequency")
+    st.markdown("### Frequencia de Gastos")
     if patterns['category_frequency']:
         for category, freq in sorted(patterns['category_frequency'].items(), key=lambda x: x[1], reverse=True)[:5]:
-            st.markdown(f"**{category}**: {freq} transactions")
+            st.markdown(f"**{category}**: {freq} transacoes")
     else:
-        st.info("No frequency data available")
+        st.info("Nenhum dado de frequencia disponivel")
 
 st.markdown("---")
 
 # Anomalies Detection
-st.subheader("⚠️ Spending Anomalies")
+st.subheader("Anomalias de Gastos")
 
 anomalies = insights['anomalies']
 
@@ -112,16 +112,16 @@ if anomalies:
     for anomaly in anomalies:
         st.markdown(f'<div class="insight-card priority-high">', unsafe_allow_html=True)
         st.markdown(f"**{anomaly['category']}**: R$ {anomaly['amount']:.2f}")
-        st.caption(f"{anomaly['description'] or 'No description'} | {anomaly['date'][:10]}")
-        st.warning(f"Unusual spending detected ({anomaly['deviation']:.1f}x deviation from average)")
+        st.caption(f"{anomaly['description'] or 'Sem descricao'} | {anomaly['date'][:10]}")
+        st.warning(f"Gasto incomum detectado ({anomaly['deviation']:.1f}x desvio da media)")
         st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.success("No unusual spending patterns detected! ✅")
+    st.success("Nenhum padrao de gasto incomum detectado!")
 
 st.markdown("---")
 
 # Savings Recommendations
-st.subheader("💡 Savings Recommendations")
+st.subheader("Recomendacoes de Economia")
 
 savings_recs = insights['savings_recommendations']
 
@@ -129,18 +129,18 @@ if savings_recs:
     for rec in savings_recs:
         priority_class = f"priority-{rec.get('priority', 'medium')}"
         st.markdown(f'<div class="insight-card {priority_class}">', unsafe_allow_html=True)
-        st.markdown(f"**{rec['category']}**" if 'category' in rec else "**Savings**")
+        st.markdown(f"**{rec['category']}**" if 'category' in rec else "**Economia**")
         st.markdown(rec['message'])
         if 'potential_savings' in rec:
-            st.info(f"Potential savings: R$ {rec['potential_savings']:.2f}/month")
+            st.info(f"Economia potencial: R$ {rec['potential_savings']:.2f}/mes")
         st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.success("No specific savings recommendations at this time. Keep up the good work! ✅")
+    st.success("Nenhuma recomendacao de economia especifica neste momento. Continue assim!")
 
 st.markdown("---")
 
 # Goal Recommendations
-st.subheader("🎯 Goal Recommendations")
+st.subheader("Recomendacoes de Metas")
 
 goal_recs = insights['goal_recommendations']
 
@@ -152,15 +152,15 @@ if goal_recs:
             st.markdown(f"**{rec['goal']}**")
         st.markdown(rec['message'])
         if 'remaining' in rec:
-            st.warning(f"Remaining: R$ {rec['remaining']:.2f}")
+            st.warning(f"Restante: R$ {rec['remaining']:.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.success("Your goals are on track! 🎉")
+    st.success("Suas metas estao no caminho certo!")
 
 st.markdown("---")
 
 # Debt Recommendations
-st.subheader("💳 Debt Management Recommendations")
+st.subheader("Recomendacoes de Gerenciamento de Dividas")
 
 debt_recs = insights['debt_recommendations']
 
@@ -170,17 +170,17 @@ if debt_recs:
         st.markdown(f'<div class="insight-card {priority_class}">', unsafe_allow_html=True)
         st.markdown(rec['message'])
         if 'interest_rate' in rec:
-            st.warning(f"Interest rate: {rec['interest_rate']}%")
+            st.warning(f"Taxa de juros: {rec['interest_rate']}%")
         if 'ratio' in rec:
-            st.warning(f"Debt-to-income ratio: {rec['ratio'] * 100:.1f}%")
+            st.warning(f"Razao divida-renda: {rec['ratio'] * 100:.1f}%")
         st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.success("No debt concerns detected! 🎉")
+    st.success("Nenhuma preocupacao com dividas detectada!")
 
 st.markdown("---")
 
 # Investment Recommendations
-st.subheader("📈 Investment Recommendations")
+st.subheader("Recomendacoes de Investimentos")
 
 investment_recs = insights['investment_recommendations']
 
@@ -190,17 +190,17 @@ if investment_recs:
         st.markdown(f'<div class="insight-card {priority_class}">', unsafe_allow_html=True)
         st.markdown(rec['message'])
         if 'performance' in rec:
-            st.warning(f"Current performance: {rec['performance']:.1f}%")
+            st.warning(f"Desempenho atual: {rec['performance']:.1f}%")
         if 'asset_types' in rec:
-            st.info(f"Current asset types: {', '.join(rec['asset_types'])}")
+            st.info(f"Tipos de ativos atuais: {', '.join(rec['asset_types'])}")
         st.markdown('</div>', unsafe_allow_html=True)
 else:
-    st.success("Your investment portfolio looks healthy! 🎉")
+    st.success("Sua carteira de investimentos parece saudavel!")
 
 st.markdown("---")
 
 # Action Plan
-st.subheader("📋 Action Plan")
+st.subheader("Plano de Acao")
 
 all_recommendations = (
     savings_recs + goal_recs + debt_recs + investment_recs
@@ -212,21 +212,24 @@ if all_recommendations:
     low_priority = [r for r in all_recommendations if r.get('priority') == 'low']
     
     if high_priority:
-        st.markdown("### 🔴 High Priority Actions")
+        st.markdown("### Acoes de Alta Prioridade")
         for i, rec in enumerate(high_priority, 1):
             st.markdown(f"{i}. {rec['message']}")
     
     if medium_priority:
-        st.markdown("### 🟡 Medium Priority Actions")
+        st.markdown("### Acoes de Media Prioridade")
         for i, rec in enumerate(medium_priority, 1):
             st.markdown(f"{i}. {rec['message']}")
     
     if low_priority:
-        st.markdown("### 🟢 Low Priority Actions")
+        st.markdown("### Acoes de Baixa Prioridade")
         for i, rec in enumerate(low_priority, 1):
             st.markdown(f"{i}. {rec['message']}")
 else:
-    st.success("No actions needed. Your financial health is excellent! 🎉")
+    st.success("Nenhuma acao necessaria. Sua saude financeira e excelente!")
 
 st.markdown("---")
-st.caption(f"Insights generated on {insights['generated_at'][:19]}")
+st.caption(f"Insights gerados em {insights['generated_at'][:19]}")
+
+st.markdown("---")
+st.caption(f"Pagina de insights atualizada em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

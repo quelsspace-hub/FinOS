@@ -8,14 +8,14 @@ import pandas as pd
 
 # Page configuration
 st.set_page_config(
-    page_title="Visualizations - FinOS",
-    page_icon="📊",
+    page_title="FinOS",
+    page_icon="�",
     layout="wide"
 )
 
 # Get user from session state
 if 'user_id' not in st.session_state:
-    st.error("Please select a user from the main dashboard first.")
+    st.error("Por favor, selecione um usuario do dashboard principal primeiro.")
     st.stop()
 
 user_id = st.session_state['user_id']
@@ -24,7 +24,7 @@ user_id = st.session_state['user_id']
 engine = FinanceEngine(st)
 engine.set_user(user_id)
 
-st.title("📊 Financial Visualizations")
+st.title("Visualizacoes Financeiras")
 st.markdown("---")
 
 # Get data
@@ -33,7 +33,7 @@ category_spending = get_transactions_by_category(user_id)
 balance_data = engine.calculate_balance()
 
 # Spending by Category (Pie Chart)
-st.subheader("💰 Spending by Category")
+st.subheader("Gastos por Categoria")
 
 if category_spending:
     df_category = pd.DataFrame(list(category_spending.items()), columns=['Category', 'Amount'])
@@ -41,18 +41,18 @@ if category_spending:
         df_category, 
         values='Amount', 
         names='Category',
-        title='Spending Distribution',
+        title='Distribuicao de Gastos',
         color_discrete_sequence=px.colors.qualitative.Pastel
     )
     fig_pie.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(fig_pie, use_container_width=True)
 else:
-    st.info("No spending data available")
+    st.info("Nenhum dado de gasto disponivel")
 
 st.markdown("---")
 
 # Spending by Category (Bar Chart)
-st.subheader("📊 Spending by Category (Bar Chart)")
+st.subheader("Gastos por Categoria (Grafico de Barras)")
 
 if category_spending:
     df_category_sorted = df_category.sort_values('Amount', ascending=False)
@@ -60,19 +60,19 @@ if category_spending:
         df_category_sorted,
         x='Category',
         y='Amount',
-        title='Spending by Category',
+        title='Gastos por Categoria',
         color='Amount',
         color_continuous_scale='Greens'
     )
     fig_bar.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_bar, use_container_width=True)
 else:
-    st.info("No spending data available")
+    st.info("Nenhum dado de gasto disponivel")
 
 st.markdown("---")
 
 # Income vs Expenses Over Time
-st.subheader("📈 Income vs Expenses Over Time")
+st.subheader("Receitas vs Despesas ao Longo do Tempo")
 
 if transactions:
     # Convert to DataFrame
@@ -90,23 +90,23 @@ if transactions:
         x='date',
         y='amount',
         color='type',
-        title='Income vs Expenses Over Time',
+        title='Receitas vs Despesas ao Longo do Tempo',
         color_discrete_map={'income': '#9ABF17', 'expense': '#D4DB7A'},
         markers=True
     )
     fig_line.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Amount (R$)',
-        legend_title='Type'
+        xaxis_title='Data',
+        yaxis_title='Valor (R$)',
+        legend_title='Tipo'
     )
     st.plotly_chart(fig_line, use_container_width=True)
 else:
-    st.info("No transaction data available")
+    st.info("Nenhum dado de transacao disponivel")
 
 st.markdown("---")
 
 # Balance Evolution
-st.subheader("💵 Balance Evolution")
+st.subheader("Evolucao do Saldo")
 
 if transactions:
     # Calculate running balance
@@ -125,22 +125,22 @@ if transactions:
         df,
         x='date',
         y='balance',
-        title='Balance Evolution Over Time',
+        title='Evolucao do Saldo ao Longo do Tempo',
         color_discrete_sequence=['#9ABF17']
     )
     fig_area.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Balance (R$)'
+        xaxis_title='Data',
+        yaxis_title='Saldo (R$)'
     )
     fig_area.add_hline(y=0, line_dash="dash", line_color="gray")
     st.plotly_chart(fig_area, use_container_width=True)
 else:
-    st.info("No transaction data available")
+    st.info("Nenhum dado de transacao disponivel")
 
 st.markdown("---")
 
 # Monthly Summary
-st.subheader("📅 Monthly Summary")
+st.subheader("Resumo Mensal")
 
 if transactions:
     df = pd.DataFrame(transactions)
@@ -155,23 +155,23 @@ if transactions:
         x='month',
         y='amount',
         color='type',
-        title='Monthly Income vs Expenses',
+        title='Receitas vs Despesas Mensais',
         color_discrete_map={'income': '#9ABF17', 'expense': '#D4DB7A'},
         barmode='group'
     )
     fig_monthly.update_layout(
-        xaxis_title='Month',
-        yaxis_title='Amount (R$)',
-        legend_title='Type'
+        xaxis_title='Mes',
+        yaxis_title='Valor (R$)',
+        legend_title='Tipo'
     )
     st.plotly_chart(fig_monthly, use_container_width=True)
 else:
-    st.info("No transaction data available")
+    st.info("Nenhum dado de transacao disponivel")
 
 st.markdown("---")
 
 # Financial Health Score Gauge
-st.subheader("🏆 Financial Health Score")
+st.subheader("Pontuacao de Saude Financeira")
 
 health_score = engine.get_financial_health_score()
 
@@ -179,7 +179,7 @@ fig_gauge = go.Figure(go.Indicator(
     mode = "gauge+number",
     value = health_score['score'],
     domain = {'x': [0, 1], 'y': [0, 1]},
-    title = {'text': f"Financial Health: {health_score['status']}", 'font': {'size': 24}},
+    title = {'text': f"Saude Financeira: {health_score['status']}", 'font': {'size': 24}},
     gauge = {
         'axis': {'range': [None, 100]},
         'bar': {'color': "#9ABF17"},
@@ -204,7 +204,7 @@ st.plotly_chart(fig_gauge, use_container_width=True)
 st.markdown("---")
 
 # Budget Progress
-st.subheader("📋 Budget Progress")
+st.subheader("Progresso do Orcamento")
 
 from core.database import get_budgets
 budgets = get_budgets(user_id)
@@ -230,19 +230,19 @@ if budgets and category_spending:
         df_budget,
         x='Category',
         y=['Spent', 'Limit'],
-        title='Budget Progress by Category',
+        title='Progresso do Orcamento por Categoria',
         barmode='overlay',
         color_discrete_sequence=['#D4DB7A', '#9ABF17']
     )
     fig_budget.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_budget, use_container_width=True)
 else:
-    st.info("No budget data available")
+    st.info("Nenhum dado de orcamento disponivel")
 
 st.markdown("---")
 
 # Goals Progress
-st.subheader("🎯 Goals Progress")
+st.subheader("Progresso das Metas")
 
 from core.database import get_goals
 goals = get_goals(user_id)
@@ -267,19 +267,19 @@ if goals:
         df_goals,
         x='Goal',
         y=['Progress', 'Target'],
-        title='Goals Progress',
+        title='Progresso das Metas',
         barmode='overlay',
         color_discrete_sequence=['#84BF93', '#9ABF17']
     )
     fig_goals.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig_goals, use_container_width=True)
 else:
-    st.info("No goals set")
+    st.info("Nenhuma meta definida")
 
 st.markdown("---")
 
 # Debt Snowball Visualization
-st.subheader("💳 Debt Snowball Plan")
+st.subheader("Plano Bola de Neve de Dividas")
 
 from core.database import get_debts
 debts = get_debts(user_id)
@@ -294,22 +294,22 @@ if debts:
             df_snowball,
             x='payoff_order',
             y='remaining_amount',
-            title='Debt Snowball Payoff Plan',
+            title='Plano de Pagamento Bola de Neve',
             color='remaining_amount',
             color_continuous_scale='Reds',
-            labels={'payoff_order': 'Payoff Order', 'remaining_amount': 'Remaining Amount (R$)'}
+            labels={'payoff_order': 'Ordem de Pagamento', 'remaining_amount': 'Valor Restante (R$)'}
         )
-        fig_snowball.update_layout(xaxis_title='Payoff Order (1 = First)')
+        fig_snowball.update_layout(xaxis_title='Ordem de Pagamento (1 = Primeiro)')
         st.plotly_chart(fig_snowball, use_container_width=True)
     else:
-        st.success("All debts are paid off! 🎉")
+        st.success("Todas as dividas estao pagas!")
 else:
-    st.info("No debts recorded")
+    st.info("Nenhuma divida registrada")
 
 st.markdown("---")
 
 # Investment Portfolio Allocation
-st.subheader("📈 Investment Portfolio Allocation")
+st.subheader("Alocacao da Carteira de Investimentos")
 
 from core.database import get_investments
 investments = get_investments(user_id)
@@ -327,10 +327,13 @@ if investments:
             df_allocation,
             values='Amount',
             names='Asset Type',
-            title='Investment Portfolio Allocation',
+            title='Alocacao da Carteira de Investimentos',
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
         fig_allocation.update_traces(textposition='inside', textinfo='percent+label')
         st.plotly_chart(fig_allocation, use_container_width=True)
 else:
-    st.info("No investments recorded")
+    st.info("Nenhum investimento registrado")
+
+st.markdown("---")
+st.caption(f"Pagina de visualizacoes atualizada em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

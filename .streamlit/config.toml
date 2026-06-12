@@ -13,11 +13,3 @@ toolbarMode = "minimal"
 headless = true
 enableCORS = true
 enableXsrfProtection = true
-
-# Dark theme configuration
-[theme.dark]
-primaryColor = "#9ABF17"
-backgroundColor = "#1a1a2e"
-secondaryBackgroundColor = "#16213e"
-textColor = "#eaeaea"
-font = "sans serif"
