@@ -112,6 +112,41 @@ def init_database():
         )
     """)
     
+    # Payment Calendar table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS payment_calendar (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            name TEXT NOT NULL,
+            amount REAL NOT NULL,
+            due_date TIMESTAMP NOT NULL,
+            category TEXT,
+            is_recurring BOOLEAN DEFAULT 0,
+            is_paid BOOLEAN DEFAULT 0,
+            paid_date TIMESTAMP,
+            notes TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+    
+    # Recurring Transactions table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recurring_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            name TEXT NOT NULL,
+            amount REAL NOT NULL,
+            category TEXT,
+            type TEXT CHECK(type IN ('income', 'expense')),
+            frequency TEXT CHECK(frequency IN ('daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly')),
+            start_date TIMESTAMP NOT NULL,
+            end_date TIMESTAMP,
+            last_generated TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+    
     conn.commit()
     conn.close()
 
@@ -556,6 +591,178 @@ def get_total_investments(user_id: int) -> Dict[str, float]:
         'total_gain': total_value - total_amount,
         'average_performance': avg_performance
     }
+
+# Payment Calendar CRUD operations
+def create_payment(user_id: int, name: str, amount: float, due_date: str, 
+                   category: str = None, is_recurring: bool = False, notes: str = None) -> int:
+    """Create a new payment and return the payment ID."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """INSERT INTO payment_calendar (user_id, name, amount, due_date, category, is_recurring, notes)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (user_id, name, amount, due_date, category, is_recurring, notes)
+    )
+    conn.commit()
+    payment_id = cursor.lastrowid
+    conn.close()
+    return payment_id
+
+def get_payments(user_id: int, start_date: str = None, end_date: str = None) -> List[Dict]:
+    """Get payments for a user, optionally filtered by date range."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    if start_date and end_date:
+        cursor.execute(
+            "SELECT * FROM payment_calendar WHERE user_id = ? AND due_date BETWEEN ? AND ? ORDER BY due_date",
+            (user_id, start_date, end_date)
+        )
+    else:
+        cursor.execute("SELECT * FROM payment_calendar WHERE user_id = ? ORDER BY due_date", (user_id,))
+    
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def update_payment(payment_id: int, **kwargs) -> bool:
+    """Update payment fields."""
+    if not kwargs:
+        return False
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    set_clause = ", ".join([f"{k} = ?" for k in kwargs.keys()])
+    values = list(kwargs.values()) + [payment_id]
+    
+    cursor.execute(
+        f"UPDATE payment_calendar SET {set_clause} WHERE id = ?",
+        values
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+def mark_payment_paid(payment_id: int) -> bool:
+    """Mark a payment as paid."""
+    return update_payment(payment_id, is_paid=True, paid_date=datetime.now().isoformat())
+
+def delete_payment(payment_id: int) -> bool:
+    """Delete a payment."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM payment_calendar WHERE id = ?", (payment_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+# Recurring Transactions CRUD operations
+def create_recurring_transaction(user_id: int, name: str, amount: float, category: str,
+                                  trans_type: str, frequency: str, start_date: str,
+                                  end_date: str = None) -> int:
+    """Create a new recurring transaction and return the ID."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """INSERT INTO recurring_transactions (user_id, name, amount, category, type, frequency, start_date, end_date)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (user_id, name, amount, category, trans_type, frequency, start_date, end_date)
+    )
+    conn.commit()
+    recurring_id = cursor.lastrowid
+    conn.close()
+    return recurring_id
+
+def get_recurring_transactions(user_id: int) -> List[Dict]:
+    """Get all recurring transactions for a user."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM recurring_transactions WHERE user_id = ? AND is_active = 1", (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def update_recurring_transaction(recurring_id: int, **kwargs) -> bool:
+    """Update recurring transaction fields."""
+    if not kwargs:
+        return False
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    set_clause = ", ".join([f"{k} = ?" for k in kwargs.keys()])
+    values = list(kwargs.values()) + [recurring_id]
+    
+    cursor.execute(
+        f"UPDATE recurring_transactions SET {set_clause} WHERE id = ?",
+        values
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+def deactivate_recurring_transaction(recurring_id: int) -> bool:
+    """Deactivate a recurring transaction."""
+    return update_recurring_transaction(recurring_id, is_active=False)
+
+def delete_recurring_transaction(recurring_id: int) -> bool:
+    """Delete a recurring transaction."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM recurring_transactions WHERE id = ?", (recurring_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+def generate_recurring_transactions(user_id: int, up_to_date: str) -> int:
+    """Generate transactions from recurring patterns up to a given date."""
+    from datetime import datetime, timedelta
+    from dateutil.relativedelta import relativedelta
+    
+    recurring = get_recurring_transactions(user_id)
+    generated_count = 0
+    
+    for rec in recurring:
+        last_generated = datetime.fromisoformat(rec['last_generated']) if rec['last_generated'] else datetime.fromisoformat(rec['start_date'])
+        target_date = datetime.fromisoformat(up_to_date)
+        
+        # Calculate next occurrence based on frequency
+        frequency_map = {
+            'daily': timedelta(days=1),
+            'weekly': timedelta(weeks=1),
+            'biweekly': timedelta(weeks=2),
+            'monthly': relativedelta(months=1),
+            'quarterly': relativedelta(months=3),
+            'yearly': relativedelta(years=1)
+        }
+        
+        delta = frequency_map.get(rec['frequency'], timedelta(days=1))
+        current_date = last_generated + delta
+        
+        while current_date <= target_date:
+            # Check if end_date is set and we've passed it
+            if rec['end_date']:
+                end_date = datetime.fromisoformat(rec['end_date'])
+                if current_date > end_date:
+                    break
+            
+            # Generate the transaction
+            create_transaction(
+                user_id=user_id,
+                trans_type=rec['type'],
+                category=rec['category'],
+                amount=rec['amount'],
+                description=f"Recurring: {rec['name']}"
+            )
+            
+            generated_count += 1
+            current_date += delta
+        
+        # Update last_generated
+        update_recurring_transaction(rec['id'], last_generated=current_date.isoformat())
+    
+    return generated_count
 
 # Initialize database on import
 if not os.path.exists(DATABASE_PATH):

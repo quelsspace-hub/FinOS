@@ -75,11 +75,145 @@ st.set_page_config(
     layout="wide"
 )
 
+# Theme toggle
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'light'
+
+def toggle_theme():
+    st.session_state.theme = 'dark' if st.session_state.theme == 'light' else 'light'
+
+# Apply theme CSS
+if st.session_state.theme == 'dark':
+    st.markdown("""
+    <style>
+        .stApp {
+            background-color: #1a1a2e;
+        }
+        
+        .metric-card {
+            background-color: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        }
+        
+        .balance-positive {
+            color: #9ABF17;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .balance-negative {
+            color: #ff6b6b;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .stButton>button {
+            background-color: #9ABF17;
+            color: #1a1a2e;
+            border-radius: 8px;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        
+        .stButton>button:hover {
+            background-color: #84BF93;
+        }
+        
+        .stTextInput>div>div>input,
+        .stSelectbox>div>div>select,
+        .stNumberInput>div>div>input {
+            background-color: #16213e;
+            border-radius: 8px;
+            border: 1px solid #9ABF17;
+            color: #eaeaea;
+        }
+        
+        h1, h2, h3 {
+            color: #eaeaea;
+        }
+        
+        .stDataFrame {
+            background-color: #16213e;
+            border-radius: 12px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <style>
+        .stApp {
+            background-color: #DDECF1;
+        }
+        
+        .metric-card {
+            background-color: #AED9C5;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .balance-positive {
+            color: #9ABF17;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .balance-negative {
+            color: #D4DB7A;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .stButton>button {
+            background-color: #9ABF17;
+            color: #282900;
+            border-radius: 8px;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        
+        .stButton>button:hover {
+            background-color: #84BF93;
+        }
+        
+        .stTextInput>div>div>input,
+        .stSelectbox>div>div>select,
+        .stNumberInput>div>div>input {
+            background-color: #AED9C5;
+            border-radius: 8px;
+            border: 1px solid #84BF93;
+        }
+        
+        h1, h2, h3 {
+            color: #282900;
+        }
+        
+        .stDataFrame {
+            background-color: #AED9C5;
+            border-radius: 12px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
 st.title("💰 FinOS - Financial Operating System")
 st.markdown("---")
 
 # User selection sidebar
 st.sidebar.header("👤 User Management")
+st.sidebar.markdown("---")
+
+# Theme toggle
+st.sidebar.header("🎨 Theme")
+theme_icon = "🌙" if st.session_state.theme == 'light' else "☀️"
+if st.sidebar.button(f"{theme_icon} Toggle Theme", on_click=toggle_theme):
+    st.rerun()
+
 st.sidebar.markdown("---")
 st.sidebar.header("📊 Navigation")
 st.sidebar.page_link("app.py", label="🏠 Dashboard", icon="🏠")
@@ -91,6 +225,7 @@ st.sidebar.page_link("pages/05_Investments.py", label="📈 Investments", icon="
 st.sidebar.page_link("pages/06_Insights.py", label="🤖 AI Insights", icon="🤖")
 st.sidebar.page_link("pages/07_Visualizations.py", label="📊 Visualizations", icon="📊")
 st.sidebar.page_link("pages/08_Reports.py", label="📄 Reports", icon="📄")
+st.sidebar.page_link("pages/09_Calendar.py", label="📅 Calendar", icon="📅")
 st.sidebar.markdown("---")
 
 users = get_all_users()
@@ -232,6 +367,25 @@ else:
                 st.success("✅ No high-priority issues detected!")
             
             st.markdown("---")
+        
+        # ML Spending Prediction
+        st.subheader("🔮 ML Spending Prediction")
+        
+        prediction_months = st.selectbox("Prediction Period (months)", [1, 3, 6, 12], index=1)
+        
+        if st.button("Generate Prediction"):
+            ml_prediction = engine.predict_spending_ml(prediction_months)
+            
+            if ml_prediction['total_predicted'] > 0:
+                st.metric(f"Predicted Spending ({prediction_months} months)", f"R$ {ml_prediction['total_predicted']:.2f}")
+                
+                st.markdown("### By Category")
+                for category, amount in ml_prediction['by_category'].items():
+                    st.markdown(f"**{category}**: R$ {amount:.2f}")
+            else:
+                st.info("Not enough data for ML prediction. Add more transactions to enable predictions.")
+        
+        st.markdown("---")
         
         # Transaction form
         col_left, col_right = st.columns([2, 1])

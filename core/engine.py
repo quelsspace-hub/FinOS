@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import math
+from core.ml_models import MLManager
 
 class FinanceEngine:
     """Core finance engine for calculating balances, budgets, and projections."""
@@ -22,12 +23,15 @@ class FinanceEngine:
         self.user_id = None
         self._cached_state = None
         self._last_calculation = None
+        self.ml_manager = MLManager(db)
     
     def set_user(self, user_id: int):
         """Set the current user context and invalidate cache."""
         self.user_id = user_id
         self._cached_state = None
         self._last_calculation = None
+        self.ml_manager.set_user(user_id)
+        self.ml_manager.load_models()
     
     def calculate_balance(self) -> Dict[str, float]:
         """Calculate current balance with income and expenses."""
@@ -37,13 +41,19 @@ class FinanceEngine:
         return self.db.get_balance(self.user_id)
     
     def smart_categorize(self, description: str, category: str = None) -> str:
-        """Intelligently categorize a transaction based on description."""
+        """Intelligently categorize a transaction based on description using ML or rules."""
         if category and category != 'Other':
             return category
         
         if not description:
             return 'Other'
         
+        # Try ML categorization first
+        ml_result = self.ml_manager.smart_categorize(description)
+        if ml_result['method'] == 'ml' and ml_result['confidence'] > 0.5:
+            return ml_result['category']
+        
+        # Fallback to rule-based categorization
         description_lower = description.lower()
         
         for category_name, keywords in self.CATEGORY_KEYWORDS.items():
@@ -577,3 +587,17 @@ class FinanceEngine:
             'current_net_worth': base_projection['current_balance'] + investment_returns['total_invested'],
             'projections': combined_projections
         }
+    
+    def predict_spending_ml(self, months: int = 3) -> Dict:
+        """Predict spending using ML models."""
+        if not self.user_id:
+            raise ValueError("User ID not set")
+        
+        return self.ml_manager.predict_spending(months)
+    
+    def train_ml_models(self) -> bool:
+        """Train ML models for the current user."""
+        if not self.user_id:
+            return False
+        
+        return self.ml_manager.train_models()
